@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shipping Label Filler</title>
+  <title>LabelFill</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -20,14 +20,28 @@
           </svg>
           <span class="logo-text">LabelFill</span>
         </div>
-        <p class="tagline">Stamp order details onto shipping labels — automatically.</p>
+        <nav class="nav">
+          <button class="nav-btn active" data-page="label-filler">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.2"/><line x1="3.5" y1="4.5" x2="10.5" y2="4.5" stroke="currentColor" stroke-width="1.2"/><line x1="3.5" y1="7" x2="8" y2="7" stroke="currentColor" stroke-width="1.2"/></svg>
+            Label Filler
+          </button>
+          <button class="nav-btn" data-page="tracking-export">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M4 7l2 2 4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Tracking Export
+          </button>
+        </nav>
       </div>
     </header>
 
-    <main class="main">
+    <!-- PAGE 1: Label Filler -->
+    <main class="main page active" id="page-label-filler">
+      <div class="page-intro">
+        <h2>Label Filler</h2>
+        <p>Upload your shipping labels PDF and orders CSV — the app stamps order details onto each label and gives you a ready-to-send PDF.</p>
+      </div>
+
       <section class="upload-section">
         <div class="upload-grid">
-
           <div class="upload-card" id="pdf-card">
             <div class="upload-icon">
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -61,13 +75,12 @@
             </label>
             <div class="file-name" id="csv-name">No file chosen</div>
           </div>
-
         </div>
 
         <div class="action-row">
           <button class="process-btn" id="process-btn" disabled>
             <span class="btn-text">Process Labels</span>
-            <span class="btn-icon">→</span>
+            <span class="btn-icon">&#8594;</span>
           </button>
         </div>
       </section>
@@ -79,17 +92,111 @@
         </div>
         <div class="log-body" id="log-body"></div>
         <div class="download-row" id="download-row" style="display:none">
-          <button class="download-btn" id="download-btn">
-            ⬇ Download Modified PDF
-          </button>
+          <button class="download-btn" id="download-btn">&#8595; Download Modified PDF</button>
         </div>
       </section>
     </main>
+
+    <!-- PAGE 2: Tracking Export -->
+    <main class="main page" id="page-tracking-export">
+      <div class="page-intro">
+        <h2>Tracking Export</h2>
+        <p>Upload your shipping labels PDF — the app reads every order ID and tracking number, then builds the Amazon shipment confirmation CSV ready to upload.</p>
+      </div>
+
+      <section class="upload-section">
+        <div class="upload-grid single">
+          <div class="upload-card" id="trk-pdf-card">
+            <div class="upload-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path d="M6 4h14l6 6v18a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+                <path d="M20 4v6h6" stroke="var(--accent)" stroke-width="1.5"/>
+                <text x="9" y="23" font-family="monospace" font-size="7" font-weight="bold" fill="var(--accent)">PDF</text>
+              </svg>
+            </div>
+            <h3>Shipping Labels PDF</h3>
+            <p class="upload-hint">Same multi-page labels PDF — one label per page</p>
+            <label class="file-btn" for="trk-pdf-input">
+              Choose PDF
+              <input type="file" id="trk-pdf-input" accept=".pdf" hidden />
+            </label>
+            <div class="file-name" id="trk-pdf-name">No file chosen</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="fields-section">
+        <div class="fields-header">
+          <h3>Shipment Details</h3>
+          <p class="upload-hint">These values fill every row of the CSV. Edit any field before generating.</p>
+        </div>
+        <div class="fields-grid">
+
+          <div class="field-group">
+            <label class="field-label" for="f-ship-date">Ship Date <span class="req">required</span></label>
+            <input class="field-input" type="date" id="f-ship-date" />
+            <span class="field-hint">YYYY-MM-DD</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="f-sender-name">Sender Name <span class="req">required</span></label>
+            <input class="field-input" type="text" id="f-sender-name" value="MH-House" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="f-addr1">Address Line 1 <span class="req">required</span></label>
+            <input class="field-input" type="text" id="f-addr1" value="828, Stockport Road" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="f-city">City <span class="req">required</span></label>
+            <input class="field-input" type="text" id="f-city" value="Manchester" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="f-county">County <span class="req">required</span></label>
+            <input class="field-input" type="text" id="f-county" value="Lancashire" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="f-postcode">Postcode <span class="req">required</span></label>
+            <input class="field-input" type="text" id="f-postcode" value="M19 3AW" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="f-country">Country Code <span class="req">required</span></label>
+            <input class="field-input" type="text" id="f-country" value="GB" maxlength="2" />
+          </div>
+
+        </div>
+      </section>
+
+      <div class="action-row">
+        <button class="process-btn" id="trk-process-btn" disabled>
+          <span class="btn-text">Generate File</span>
+          <span class="btn-icon">&#8594;</span>
+        </button>
+      </div>
+
+      <section class="log-section" id="trk-log-section" style="display:none">
+        <div class="log-header">
+          <h3>Processing Log</h3>
+          <div class="log-status" id="trk-log-status"></div>
+        </div>
+        <div class="log-body" id="trk-log-body"></div>
+        <div class="download-row" id="trk-download-row" style="display:none">
+          <button class="download-btn" id="trk-download-btn">&#8595; Download Filled Template (.xlsx)#8595; Download ShippingConfirmation (.txt)</button>
+        </div>
+      </section>
+    </main>
+
   </div>
 
-  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
   <script src="app.js"></script>
+  <script src="tracking.js"></script>
+  <script src="nav.js"></script>
 </body>
 </html>
