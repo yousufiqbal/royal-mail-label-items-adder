@@ -38,7 +38,43 @@ trkPdfInput.addEventListener('change', () => {
   trkPdfName.className   = trkPdfFile ? 'file-name ready' : 'file-name';
   trkPdfCard.classList.toggle('has-file', !!trkPdfFile);
   trkProcessBtn.disabled = !trkPdfFile;
+  if (trkPdfFile) autoFillShipDate(trkPdfFile.name);
 });
+
+// ── Auto-fill ship date from filename ────────────────────────
+// Handles formats:
+//   "15 May 2026 Friday Labels.pdf"   → 2026-05-15
+//   "orders-2026-05-15-07-51-48.pdf"  → 2026-05-15
+function autoFillShipDate(filename) {
+  const MONTHS = {
+    january:1, february:2, march:3, april:4, may:5, june:6,
+    july:7, august:8, september:9, october:10, november:11, december:12
+  };
+  const input = document.getElementById('f-ship-date');
+
+  // Try "15 May 2026" style (day MonthName year)
+  const m1 = filename.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+  if (m1) {
+    const day   = parseInt(m1[1]);
+    const month = MONTHS[m1[2].toLowerCase()];
+    const year  = parseInt(m1[3]);
+    if (month && day >= 1 && day <= 31) {
+      input.value = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      return;
+    }
+  }
+
+  // Try "2026-05-15" style (YYYY-MM-DD)
+  const m2 = filename.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m2) {
+    input.value = `${m2[1]}-${m2[2]}-${m2[3]}`;
+    return;
+  }
+
+  // Fallback: today
+  const t = new Date();
+  input.value = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
 
 // ── Process + Download ───────────────────────────────────────
 trkProcessBtn.addEventListener('click', runTracking);
