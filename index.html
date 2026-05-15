@@ -64,14 +64,14 @@
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                 <path d="M6 4h14l6 6v18a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
                 <path d="M20 4v6h6" stroke="var(--accent)" stroke-width="1.5"/>
-                <text x="9" y="23" font-family="monospace" font-size="7" font-weight="bold" fill="var(--accent)">CSV</text>
+                <text x="9" y="23" font-family="monospace" font-size="7" font-weight="bold" fill="var(--accent)">TXT</text>
               </svg>
             </div>
-            <h3>Orders CSV</h3>
-            <p class="upload-hint">Must have <code>order-id</code>, <code>product-name</code>, <code>quantity-purchased</code> columns</p>
+            <h3>Orders TXT</h3>
+            <p class="upload-hint">Tab-delimited file — must have <code>order-id</code>, <code>product-name</code>, <code>quantity-purchased</code> columns</p>
             <label class="file-btn" for="csv-input">
-              Choose CSV
-              <input type="file" id="csv-input" accept=".csv" hidden />
+              Choose TXT
+              <input type="file" id="csv-input" accept=".txt,.tsv,.tab" hidden />
             </label>
             <div class="file-name" id="csv-name">No file chosen</div>
           </div>

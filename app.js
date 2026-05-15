@@ -105,11 +105,17 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── CSV parsing ──────────────────────────────────────────
+// ── TSV / CSV parsing ────────────────────────────────────────
+// Auto-detects delimiter: tab (TXT/TSV) or comma (CSV)
 function parseCSV(text) {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
-  const headers = parseCSVRow(lines[0]).map(h => h.trim().toLowerCase());
+
+  // Detect delimiter from the header line
+  const firstLine = lines[0];
+  const delimiter = firstLine.includes('\t') ? '\t' : ',';
+
+  const headers = parseCSVRow(firstLine, delimiter).map(h => h.trim().toLowerCase());
 
   const idIdx   = headers.findIndex(h => h === 'order-id'           || h === 'order_id');
   const nameIdx = headers.findIndex(h => h === 'product-name'       || h === 'product_name' || h === 'product name');
@@ -117,7 +123,7 @@ function parseCSV(text) {
 
   if (idIdx === -1 || nameIdx === -1 || qtyIdx === -1) {
     throw new Error(
-      `CSV missing required columns. Found: "${headers.join('", "')}". ` +
+      `File missing required columns. Found: "${headers.join('", "')}". ` +
       `Need: order-id, product-name, quantity-purchased`
     );
   }
@@ -125,7 +131,7 @@ function parseCSV(text) {
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
     if (!lines[i].trim()) continue;
-    const cols = parseCSVRow(lines[i]);
+    const cols = parseCSVRow(lines[i], delimiter);
     rows.push({
       orderId:  (cols[idIdx]   || '').trim(),
       name:     (cols[nameIdx] || '').trim(),
@@ -135,7 +141,11 @@ function parseCSV(text) {
   return rows;
 }
 
-function parseCSVRow(line) {
+function parseCSVRow(line, delimiter = ',') {
+  if (delimiter === '\t') {
+    return line.split('\t');
+  }
+  // Comma-delimited: handle quoted fields
   const result = [];
   let cur = '', inQ = false;
   for (let i = 0; i < line.length; i++) {
@@ -152,6 +162,7 @@ function parseCSVRow(line) {
   result.push(cur);
   return result;
 }
+
 
 // ── Build order map: orderId → [{ name, qty }] ───────────
 function buildOrderMap(rows) {
@@ -306,7 +317,7 @@ async function runProcess() {
 
   try {
     // 1. Read CSV
-    logHead('Reading CSV…');
+    logHead('Reading orders file…');
     const csvText = await readFileAsText(csvFile);
     let csvRows;
     try {
@@ -316,7 +327,7 @@ async function runProcess() {
       return;
     }
     const orderMap = buildOrderMap(csvRows);
-    logOk(`CSV loaded — ${csvRows.length} rows, ${Object.keys(orderMap).length} unique order IDs`);
+    logOk(`File loaded — ${csvRows.length} rows, ${Object.keys(orderMap).length} unique order IDs`);
 
     // 2. Read PDF bytes
     logHead('Reading PDF…');
