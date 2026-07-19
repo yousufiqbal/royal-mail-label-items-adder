@@ -25,6 +25,7 @@
 		{
 			title: 'Labels',
 			links: [
+				{ href: '/labels/order-deduplicator', label: 'Order Deduplicator' },
 				{ href: '/labels/label-filler', label: 'Label Filler' },
 				{ href: '/labels/tracking-export', label: 'Tracking Export' },
 				{ href: '/labels/purchasing-list', label: 'Purchasing List' },
@@ -45,6 +46,12 @@
 	];
 
 	const currentPath = $derived(page.url.pathname);
+
+	// Close the drawer whenever the route changes (covers back/forward nav too).
+	$effect(() => {
+		void currentPath;
+		navOpen = false;
+	});
 </script>
 
 <svelte:head>
@@ -99,6 +106,14 @@
 	</nav>
 </header>
 
+<button
+	class="nav-overlay"
+	class:open={navOpen}
+	aria-label="Close menu"
+	tabindex={navOpen ? 0 : -1}
+	onclick={closeNav}
+></button>
+
 <svelte:window
 	onclick={(e) => {
 		if (!navOpen) return;
@@ -106,6 +121,9 @@
 		const navEl = document.getElementById('mobile-nav');
 		const toggleEl = document.getElementById('nav-toggle');
 		if (navEl && !navEl.contains(target) && target !== toggleEl) closeNav();
+	}}
+	onkeydown={(e) => {
+		if (e.key === 'Escape' && navOpen) closeNav();
 	}}
 />
 

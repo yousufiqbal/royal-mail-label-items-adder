@@ -41,7 +41,7 @@ export function buildOutputFilename(originalName: string): string {
 
 	const dayName = date.toLocaleDateString('en-GB', { weekday: 'long' });
 	const monthName = date.toLocaleDateString('en-GB', { month: 'long' });
-	return `${day} ${monthName} ${year} ${dayName} Labels.pdf`;
+	return `Labels ${day} ${monthName} ${year} ${dayName}.pdf`;
 }
 
 // Label format:

@@ -90,7 +90,7 @@ export function buildPackingFilename(dateStr: string, ext: string): string {
 	const month = date.toLocaleDateString('en-GB', { month: 'long' });
 	const year = date.getFullYear();
 	const wday = date.toLocaleDateString('en-GB', { weekday: 'long' });
-	return `${day} ${month} ${year} ${wday} Purchase List.${ext}`;
+	return `Purchase List ${day} ${month} ${year} ${wday}.${ext}`;
 }
 
 function csvField(v: unknown): string {

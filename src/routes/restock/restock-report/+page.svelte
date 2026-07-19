@@ -300,7 +300,7 @@
 
 <svelte:head><title>Restock Report — Amazon Tools</title></svelte:head>
 
-<main class="main">
+<main class="main full">
 	<div class="page-intro">
 		<h2>Restock Report</h2>
 		<p>Merge Amazon Business Report + FBA Inventory into a restock CSV.</p>
@@ -391,7 +391,7 @@
 
 	<div class="action-row" style="justify-content: flex-start">
 		<button class="process-btn" disabled={mergeDisabled} onclick={handleMerge}>
-			<span class="btn-text">Merge</span>
+			<span class="btn-text">Process</span>
 		</button>
 	</div>
 

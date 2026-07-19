@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { readFileAsArrayBuffer } from '$lib/csv';
+	import { readFileAsArrayBuffer, formatFileDate } from '$lib/csv';
 	import { runTracking, autoFillShipDate, buildTrackingFilename, type ShipFields } from '$lib/tracking/tracking';
 
 	function todayIso() {
@@ -8,7 +8,6 @@
 	}
 
 	let pdfFile: File | null = $state(null);
-	let originalName = $state('');
 
 	let shipDate = $state(todayIso());
 	let senderName = $state('MH-House');
@@ -33,7 +32,6 @@
 	function onPdfChange(e: Event) {
 		const file = (e.target as HTMLInputElement).files?.[0] ?? null;
 		pdfFile = file;
-		originalName = file ? file.name : '';
 		if (file) shipDate = autoFillShipDate(file.name);
 	}
 
@@ -79,7 +77,7 @@
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
-		a.download = buildTrackingFilename(originalName);
+		a.download = buildTrackingFilename(shipDate);
 		a.click();
 		setTimeout(() => URL.revokeObjectURL(url), 5000);
 	}
@@ -104,7 +102,14 @@
 				Choose PDF
 				<input type="file" id="trk-pdf-input" accept=".pdf" hidden onchange={onPdfChange} />
 			</label>
-			<div class="file-name" class:ready={!!pdfFile}>{pdfFile ? pdfFile.name : 'No file chosen'}</div>
+			{#if pdfFile}
+				<div class="file-name-row">
+					<span class="file-name ready">{pdfFile.name}</span>
+					<span class="file-name-date">{formatFileDate(pdfFile)}</span>
+				</div>
+			{:else}
+				<div class="file-name">No file chosen</div>
+			{/if}
 		</div>
 	</section>
 

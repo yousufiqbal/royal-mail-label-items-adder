@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { mergePdfs } from '$lib/mergePdf';
+	import { formatFileDate } from '$lib/csv';
 
 	let files: File[] = $state([]);
 	let logLines: { type: string; icon: string; msg: string }[] = $state([]);
@@ -55,13 +56,23 @@
 		}
 	}
 
+	// "Labels Merged 19 July 2026 Sunday.pdf"
+	function buildMergedFilename(): string {
+		const d = new Date();
+		const day = d.getDate();
+		const month = d.toLocaleDateString('en-GB', { month: 'long' });
+		const year = d.getFullYear();
+		const wday = d.toLocaleDateString('en-GB', { weekday: 'long' });
+		return `Labels Merged ${day} ${month} ${year} ${wday}.pdf`;
+	}
+
 	function download() {
 		if (!mergedBytes) return;
 		const blob = new Blob([mergedBytes as BlobPart], { type: 'application/pdf' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
-		a.download = 'Merged.pdf';
+		a.download = buildMergedFilename();
 		a.click();
 		setTimeout(() => URL.revokeObjectURL(url), 5000);
 	}
@@ -95,7 +106,7 @@
 				<span class="mrg-file-index">{i + 1}</span>
 				<span class="mrg-file-info">
 					<span class="mrg-file-name">{file.name}</span>
-					<span class="mrg-file-meta"> — {(file.size / 1024).toFixed(0)} KB</span>
+					<span class="mrg-file-meta"> — {(file.size / 1024).toFixed(0)} KB — {formatFileDate(file)}</span>
 				</span>
 				<span class="mrg-file-actions">
 					<button disabled={i === 0} title="Move up" onclick={() => moveFile(i, -1)}>&#8593;</button>

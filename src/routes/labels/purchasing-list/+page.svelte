@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { parseCSV, readFileAsText } from '$lib/csv';
+	import { parseCSV, readFileAsText, formatFileDate } from '$lib/csv';
 	import { aggregatePacking, buildPackingCsv, buildPackingPdf, buildPackingFilename, type PkgGroup } from '$lib/packing';
 
 	function todayIso() {
@@ -25,18 +25,6 @@
 
 	function onFilesChange(e: Event) {
 		files = Array.from((e.target as HTMLInputElement).files ?? []);
-	}
-
-	function formatFileDate(file: File): string {
-		const d = new Date(file.lastModified);
-		if (isNaN(d.getTime())) return '';
-		return (
-			d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) +
-			' ' +
-			d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) +
-			' ' +
-			d.toLocaleDateString('en-GB', { weekday: 'long' })
-		);
 	}
 
 	async function runPacking() {

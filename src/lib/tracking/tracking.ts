@@ -54,17 +54,19 @@ export function autoFillShipDate(filename: string): string {
 	return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
 }
 
-export function buildTrackingFilename(name: string): string {
-	const base = name.replace(/\.pdf$/i, '');
-	const m = base.match(/(\d{4})-(\d{2})-(\d{2})/);
-	if (!m) return 'ShippingConfirmation.txt';
+// dateStr is the ship-date field value (YYYY-MM-DD) — using it instead of
+// parsing the uploaded PDF's filename means the export name is always
+// correct, even when the PDF isn't named with an embedded date.
+export function buildTrackingFilename(dateStr: string): string {
+	const m = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+	if (!m) return 'Shipping.txt';
 	const date = new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
-	if (isNaN(date.getTime())) return 'ShippingConfirmation.txt';
+	if (isNaN(date.getTime())) return 'Shipping.txt';
 	const day = date.getDate();
 	const month = date.toLocaleDateString('en-GB', { month: 'long' });
 	const year = date.getFullYear();
 	const wday = date.toLocaleDateString('en-GB', { weekday: 'long' });
-	return `${day} ${month} ${year} ${wday} ShippingConfirmation.txt`;
+	return `Shipping ${day} ${month} ${year} ${wday}.txt`;
 }
 
 function extractOrderId(pageText: string): string | null {

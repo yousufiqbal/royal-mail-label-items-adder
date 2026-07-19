@@ -90,7 +90,7 @@
 
 <svelte:head><title>FBM Stock Check — Amazon Tools</title></svelte:head>
 
-<main class="main">
+<main class="main full">
 	<div class="page-intro">
 		<h2>FBM Stock Check</h2>
 		<p>Upload your FBM Inventory / Listings Report to find out-of-stock listings.</p>

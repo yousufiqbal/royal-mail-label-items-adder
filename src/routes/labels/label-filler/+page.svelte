@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { parseCSV, readFileAsText, readFileAsArrayBuffer, type OrderRow } from '$lib/csv';
+	import { parseCSV, readFileAsText, readFileAsArrayBuffer, formatFileDate, type OrderRow } from '$lib/csv';
 	import { runLabelFiller, buildOutputFilename } from '$lib/labelFiller';
 
 	let pdfFile: File | null = $state(null);
@@ -100,7 +100,14 @@
 				Choose PDF
 				<input type="file" id="pdf-input" accept=".pdf" hidden onchange={onPdfChange} />
 			</label>
-			<div class="file-name" class:ready={!!pdfFile}>{pdfFile ? pdfFile.name : 'No file chosen'}</div>
+			{#if pdfFile}
+				<div class="file-name-row">
+					<span class="file-name ready">{pdfFile.name}</span>
+					<span class="file-name-date">{formatFileDate(pdfFile)}</span>
+				</div>
+			{:else}
+				<div class="file-name">No file chosen</div>
+			{/if}
 		</div>
 
 		<div class="upload-card" class:has-file={!!csvFile}>
@@ -113,7 +120,14 @@
 				Choose TXT
 				<input type="file" id="csv-input" accept=".txt,.tsv,.tab" hidden onchange={onCsvChange} />
 			</label>
-			<div class="file-name" class:ready={!!csvFile}>{csvFile ? csvFile.name : 'No file chosen'}</div>
+			{#if csvFile}
+				<div class="file-name-row">
+					<span class="file-name ready">{csvFile.name}</span>
+					<span class="file-name-date">{formatFileDate(csvFile)}</span>
+				</div>
+			{:else}
+				<div class="file-name">No file chosen</div>
+			{/if}
 		</div>
 	</section>
 

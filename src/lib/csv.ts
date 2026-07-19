@@ -107,6 +107,19 @@ export function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
 	});
 }
 
+// Browsers only expose a file's last-modified time, not a true creation date.
+export function formatFileDate(file: File): string {
+	const d = new Date(file.lastModified);
+	if (isNaN(d.getTime())) return '';
+	return (
+		d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) +
+		' ' +
+		d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) +
+		' ' +
+		d.toLocaleDateString('en-GB', { weekday: 'long' })
+	);
+}
+
 export function extractVariant(name: string): string | null {
 	const m = name.match(/\(([^)]+)\)\s*$/);
 	return m ? m[1].trim() : null;
