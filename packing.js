@@ -7,7 +7,7 @@
    from app.js — same file format, no need to re-parse.
    ============================================================= */
 
-let pkgFile   = null;
+let pkgFiles  = []; // FileList → array
 let pkgGroups = null; // [{ product, total, variants: [{ variant, qty }] }]
 
 const pkgInput       = document.getElementById('pkg-input');
@@ -23,6 +23,10 @@ const pkgDownloadRow = document.getElementById('pkg-download-row');
 const pkgCsvBtn      = document.getElementById('pkg-csv-btn');
 const pkgPdfBtn      = document.getElementById('pkg-pdf-btn');
 
+const pkgPreviewSection = document.getElementById('pkg-preview-section');
+const pkgPreviewList    = document.getElementById('pkg-preview-list');
+const pkgAddParentBtn   = document.getElementById('pkg-add-parent-btn');
+
 // Default the list date to today.
 (function () {
   const t = new Date();
@@ -32,12 +36,30 @@ const pkgPdfBtn      = document.getElementById('pkg-pdf-btn');
   pkgDateInput.value = `${yyyy}-${mm}-${dd}`;
 })();
 
+// Browsers only expose a file's last-modified time, not a true creation date.
+function formatFileDate(file) {
+  const d = new Date(file.lastModified);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) +
+    ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) +
+    ' ' + d.toLocaleDateString('en-GB', { weekday: 'long' });
+}
+
 pkgInput.addEventListener('change', () => {
-  pkgFile = pkgInput.files[0] || null;
-  pkgName.textContent = pkgFile ? pkgFile.name : 'No file chosen';
-  pkgName.className   = pkgFile ? 'file-name ready' : 'file-name';
-  pkgCard.classList.toggle('has-file', !!pkgFile);
-  pkgProcessBtn.disabled = !pkgFile;
+  pkgFiles = Array.from(pkgInput.files || []);
+
+  if (!pkgFiles.length) {
+    pkgName.textContent = 'No file chosen';
+    pkgName.className   = 'file-name';
+  } else {
+    pkgName.innerHTML = pkgFiles
+      .map(f => `<div class="file-name-row"><span class="file-name-file">${escHtml(f.name)}</span><span class="file-name-date">${escHtml(formatFileDate(f))}</span></div>`)
+      .join('');
+    pkgName.className = 'file-name ready';
+  }
+
+  pkgCard.classList.toggle('has-file', !!pkgFiles.length);
+  pkgProcessBtn.disabled = !pkgFiles.length;
 });
 
 pkgProcessBtn.addEventListener('click', runPacking);
@@ -133,16 +155,21 @@ async function runPacking() {
   pkgProcessBtn.querySelector('.btn-text').textContent = 'Processing…';
 
   try {
-    pL.head('Reading orders file…');
-    const text = await readFileAsText(pkgFile);
-    let rows;
-    try {
-      rows = parseCSV(text);
-    } catch (e) {
-      pL.err(e.message);
-      return;
+    pL.head(pkgFiles.length > 1 ? `Reading ${pkgFiles.length} orders files…` : 'Reading orders file…');
+    let rows = [];
+    for (const file of pkgFiles) {
+      const text = await readFileAsText(file);
+      let fileRows;
+      try {
+        fileRows = parseCSV(text);
+      } catch (e) {
+        pL.err(`${file.name}: ${e.message}`);
+        return;
+      }
+      pL.ok(`${file.name} — ${fileRows.length} rows`);
+      rows = rows.concat(fileRows);
     }
-    pL.ok(`File loaded — ${rows.length} rows`);
+    pL.ok(`${rows.length} rows total across ${pkgFiles.length} file(s)`);
 
     pL.head('Grouping by product + variant…');
     pkgGroups = aggregatePacking(rows, pkgCleanCheck.checked);
@@ -161,7 +188,9 @@ async function runPacking() {
     }
 
     pkgLogStatus.textContent = `${pkgGroups.length} products, ${totalQty} units`;
+    pkgPreviewSection.style.display = '';
     pkgDownloadRow.style.display = '';
+    renderPkgPreview();
 
   } catch (err) {
     pL.err(`Fatal error: ${err.message}`);
@@ -170,6 +199,105 @@ async function runPacking() {
     pkgProcessBtn.classList.remove('loading');
     pkgProcessBtn.querySelector('.btn-text').textContent = 'Generate List';
   }
+}
+
+// ── Editable preview ───────────────────────────────────────────
+pkgAddParentBtn.addEventListener('click', () => {
+  if (!pkgGroups) return;
+  pkgGroups.push({ product: 'New Product', total: 0, variants: [{ variant: '', qty: 1 }] });
+  renderPkgPreview();
+});
+
+function recalcPkgStatus() {
+  const totalQty = pkgGroups.reduce((s, g) => s + g.total, 0);
+  pkgLogStatus.textContent = `${pkgGroups.length} products, ${totalQty} units`;
+}
+
+function renderPkgPreview() {
+  pkgPreviewList.innerHTML = '';
+
+  if (!pkgGroups.length) {
+    const hint = document.createElement('div');
+    hint.className = 'pkg-empty-hint';
+    hint.textContent = 'No products — use "Add Product" to start one.';
+    pkgPreviewList.appendChild(hint);
+    recalcPkgStatus();
+    return;
+  }
+
+  pkgGroups.forEach((group, gi) => {
+    const parentEl = document.createElement('div');
+    parentEl.className = 'pkg-parent';
+    parentEl.innerHTML = `
+      <div class="pkg-parent-header">
+        <input class="pkg-parent-name" value="${escAttr(group.product)}" />
+        <span class="pkg-parent-total">${group.total} total</span>
+        <button class="pkg-icon-btn" data-act="add-child" title="Add variant">+</button>
+        <button class="pkg-icon-btn danger" data-act="remove-parent" title="Remove product">&times;</button>
+      </div>
+      <div class="pkg-children"></div>
+    `;
+
+    parentEl.querySelector('.pkg-parent-name').addEventListener('input', e => {
+      group.product = e.target.value;
+    });
+    parentEl.querySelector('[data-act="add-child"]').addEventListener('click', () => {
+      group.variants.push({ variant: '', qty: 1 });
+      renderPkgPreview();
+    });
+    parentEl.querySelector('[data-act="remove-parent"]').addEventListener('click', () => {
+      pkgGroups.splice(gi, 1);
+      renderPkgPreview();
+    });
+
+    const childrenEl = parentEl.querySelector('.pkg-children');
+    group.variants.forEach((v, vi) => {
+      const childEl = document.createElement('div');
+      childEl.className = 'pkg-child';
+      childEl.innerHTML = `
+        <input class="pkg-child-variant" placeholder="variant" value="${escAttr(v.variant)}" />
+        <div class="pkg-qty-stepper">
+          <button class="pkg-icon-btn" data-act="dec" title="Decrease">&minus;</button>
+          <span class="pkg-qty-value">${v.qty}</span>
+          <button class="pkg-icon-btn" data-act="inc" title="Increase">+</button>
+        </div>
+        <button class="pkg-icon-btn danger" data-act="remove-child" title="Remove variant">&times;</button>
+      `;
+
+      childEl.querySelector('.pkg-child-variant').addEventListener('input', e => {
+        v.variant = e.target.value;
+      });
+      childEl.querySelector('[data-act="dec"]').addEventListener('click', () => {
+        v.qty = Math.max(1, v.qty - 1);
+        group.total = group.variants.reduce((s, x) => s + x.qty, 0);
+        childEl.querySelector('.pkg-qty-value').textContent = v.qty;
+        parentEl.querySelector('.pkg-parent-total').textContent = `${group.total} total`;
+        recalcPkgStatus();
+      });
+      childEl.querySelector('[data-act="inc"]').addEventListener('click', () => {
+        v.qty += 1;
+        group.total = group.variants.reduce((s, x) => s + x.qty, 0);
+        childEl.querySelector('.pkg-qty-value').textContent = v.qty;
+        parentEl.querySelector('.pkg-parent-total').textContent = `${group.total} total`;
+        recalcPkgStatus();
+      });
+      childEl.querySelector('[data-act="remove-child"]').addEventListener('click', () => {
+        group.variants.splice(vi, 1);
+        group.total = group.variants.reduce((s, x) => s + x.qty, 0);
+        renderPkgPreview();
+      });
+
+      childrenEl.appendChild(childEl);
+    });
+
+    pkgPreviewList.appendChild(parentEl);
+  });
+
+  recalcPkgStatus();
+}
+
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 
 // ── Filename ─────────────────────────────────────────────────
