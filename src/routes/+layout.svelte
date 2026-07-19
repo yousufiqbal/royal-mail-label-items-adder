@@ -26,7 +26,7 @@
 			title: 'Labels',
 			links: [
 				{ href: '/labels/order-deduplicator', label: 'Order Deduplicator' },
-				{ href: '/labels/label-filler', label: 'Label Filler' },
+				{ href: '/labels/label-filler', label: 'Label Details Filler' },
 				{ href: '/labels/tracking-export', label: 'Tracking Export' },
 				{ href: '/labels/purchasing-list', label: 'Purchasing List' },
 				{ href: '/labels/merge-pdf', label: 'Merge PDF' }

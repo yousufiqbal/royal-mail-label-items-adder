@@ -81,11 +81,11 @@
 	}
 </script>
 
-<svelte:head><title>Label Filler — Amazon Tools</title></svelte:head>
+<svelte:head><title>Label Details Filler — Amazon Tools</title></svelte:head>
 
 <main class="main">
 	<div class="page-intro">
-		<h2>Label Filler</h2>
+		<h2>Label Details Filler</h2>
 		<p>
 			Upload your shipping labels PDF and orders CSV — the app stamps order details onto each
 			label and gives you a ready-to-send PDF.

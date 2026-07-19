@@ -100,22 +100,24 @@
 		</div>
 	</section>
 
-	<ol class="mrg-file-list">
-		{#each files as file, i (file.name + file.lastModified + i)}
-			<li class="mrg-file-item">
-				<span class="mrg-file-index">{i + 1}</span>
-				<span class="mrg-file-info">
-					<span class="mrg-file-name">{file.name}</span>
-					<span class="mrg-file-meta"> — {(file.size / 1024).toFixed(0)} KB — {formatFileDate(file)}</span>
-				</span>
-				<span class="mrg-file-actions">
-					<button disabled={i === 0} title="Move up" onclick={() => moveFile(i, -1)}>&#8593;</button>
-					<button disabled={i === files.length - 1} title="Move down" onclick={() => moveFile(i, 1)}>&#8595;</button>
-					<button title="Remove" onclick={() => removeFile(i)}>&times;</button>
-				</span>
-			</li>
-		{/each}
-	</ol>
+	{#if files.length}
+		<ol class="mrg-file-list">
+			{#each files as file, i (file.name + file.lastModified + i)}
+				<li class="mrg-file-item">
+					<span class="mrg-file-index">{i + 1}</span>
+					<span class="mrg-file-info">
+						<span class="mrg-file-name">{file.name}</span>
+						<span class="mrg-file-meta"> — {(file.size / 1024).toFixed(0)} KB — {formatFileDate(file)}</span>
+					</span>
+					<span class="mrg-file-actions">
+						<button disabled={i === 0} title="Move up" onclick={() => moveFile(i, -1)}>&#8593;</button>
+						<button disabled={i === files.length - 1} title="Move down" onclick={() => moveFile(i, 1)}>&#8595;</button>
+						<button title="Remove" onclick={() => removeFile(i)}>&times;</button>
+					</span>
+				</li>
+			{/each}
+		</ol>
+	{/if}
 
 	<div class="action-row">
 		<button class="process-btn" class:loading={processing} disabled={files.length < 2 || processing} onclick={runMerge}>
